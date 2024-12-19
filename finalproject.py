@@ -2,7 +2,7 @@ import pygame
 import math
 from pygame.locals import *
 pygame.init()
-
+pygame.mixer.music.set_volume(0.1)
 # GÁN BIẾN MÀN HÌNH
 WIDTH, HEIGHT = 600, 800 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -198,7 +198,7 @@ while running:
             # Chuyển từ MAIN_MENU sang GAME_RUNNING
             if game_state == MAIN_MENU and event.key == pygame.K_SPACE:
                 game_state = GAME_RUNNING
-                water.play()
+                main_menu_sound.stop()
                 start_ticks = pygame.time.get_ticks()
             # Chuyển từ GAME_END sang GAME_RUNNING
             elif game_state == GAME_END and event.key == pygame.K_SPACE:
@@ -232,7 +232,7 @@ while running:
                 ao_visible = True
                 main_menu_sound.play()
                 game_state = MAIN_MENU
-            elif event.type == pygame.KEYDOWN and game_state == GAME_RUNNING:
+            elif event.type == pygame.KEYDOWN and game_state == GAME_RUNNING: 
                 if event.key == pygame.K_SPACE:
                     hook.is_throwing = True
         elif event.type == pygame.KEYUP and game_state == GAME_RUNNING:  
@@ -243,63 +243,94 @@ while running:
             if check_button_click(mouse_x, mouse_y, rachuuco.get_rect(topleft=(100, 700))):
                 if current_item == "chuoi" or current_item == "tao":
                     score += 10
-                    current_music = rainbow.play()
+                    pygame.mixer.stop()
+                    rainbow.play()
                     sky = win
                 elif current_item == "chainhua":
                     score += 0
                     sky = bg_default
+                    pygame.mixer.stop()
+                    water.play()
                 elif current_item == "ao" or current_item == "kimtiem":
                     score += 0
                     sky = bg_default
+                    pygame.mixer.stop()
+                    water.play()
                 elif current_item == "ca1" or current_item == "ca2" or current_item == "rua" or current_item == "caheo":
                     score -= 30
-                    current_music = thunder.play()
+                    pygame.mixer.stop()
+                    thunder.play()
                     sky = lose
             elif check_button_click(mouse_x, mouse_y, ractaiche.get_rect(topleft=(400, 700))):
                 if current_item == "chainhua":
                     score += 20
-                    current_music = rainbow.play()
+                    water.stop()
+                    thunder.stop()
+                    rainbow.play()
                     sky = win
                 elif current_item == "ao" or current_item == "kimtiem":
                     score += 0
-                    current_music = rainbow.stop()
+                    rainbow.stop()
+                    thunder.stop()
+                    water.play()
                     sky = bg_default
                 elif current_item == "ca1" or current_item == "ca2" or current_item == "rua" or current_item == "caheo":
                     score -= 30
-                    current_music = thunder.play()
+                    rainbow.stop()
+                    thunder.play()
+                    water.stop()
                     sky = lose
             elif check_button_click(mouse_x, mouse_y, rackhac.get_rect(topleft=(250, 700))):
                 if current_item == "ao" or current_item == "kimtiem":
                     score += 15
-                    current_music = rainbow.play()
+                    rainbow.play()
+                    thunder.stop()
+                    water.stop()
                     sky = win
                 elif current_item == "chainhua":
                     score += 0
+                    rainbow.stop()
+                    thunder.stop()
+                    water.play()
                     sky = bg_default
                 elif current_item == "chuoi" or current_item == "tao":
                     score += 0
+                    rainbow.stop()
+                    thunder.stop()
+                    water.play()
                     sky = bg_default
                 elif current_item == "ca1" or current_item == "ca2" or current_item == "rua" or current_item == "caheo":
                     score -= 30
-                    current_music = thunder.play()
+                    rainbow.stop()
+                    thunder.play()
+                    water.stop()
                     sky = lose
             elif mouse_x == back:
                 if current_item == "ao" or current_item == "kimtiem":
                     score += 0
+                    rainbow.stop()
+                    thunder.stop()
+                    water.play()
                     sky = bg_default
                 elif current_item == "chainhua":
-                    score += 0
+                    rainbow.stop()
+                    thunder.stop()
+                    water.play()
                     bsky = bg_default
                 elif current_item == "chuoi" or current_item == "tao":
                     score += 0
+                    rainbow.stop()
+                    thunder.stop()
+                    water.play()
                     sky = bg_default
                 elif current_item == "ca1" or current_item == "ca2" or current_item == "rua" or current_item == "caheo":
                     score -= 30
-                    current_music = thunder.play()
+                    rainbow.stop()
+                    thunder.play()
+                    water.stop()
                     sky = lose
+            
             background = sky
-            thunder.stop()
-            current_music = rainbow.play()
             game_state = GAME_RUNNING
             current_poster = None
             hook.reset()
@@ -316,15 +347,18 @@ while running:
                     score -= 30  
             background = lose
             rainbow.stop()
-            current_music = thunder.play()
+            thunder.play()
+            water.stop()
             game_state = GAME_RUNNING
             current_poster = None
             hook.reset()
         elif game_state == GAME_RUNNING and (sl_rac == 5 or sl_dv == 4):
             game_state = GAME_END
     if game_state == MAIN_MENU:
+        main_menu_sound.play()
         screen.blit(main_menu, (0, 0))
     elif game_state == GAME_RUNNING:
+        water.play()
         screen.blit(background, (0, 0))
         screen.blit(zeen, (74.8, 177.1))
         show_timer(WIDTH - 150, 10, time_left)
@@ -352,8 +386,6 @@ while running:
             rua_x, rua_speed, rua = update_draw_item(screen, rua, rua_x, rua_y, rua_speed)
         if kimtiem_visible:
             screen.blit(kimtiem, (kimtiem_x, kimtiem_y))
-
-        
         hook.update()
         hook.draw(screen)
         show_score(10, 10)
@@ -438,11 +470,17 @@ while running:
             poster_button_plus(current_poster, screen)
             show_timer(WIDTH - 150, 10, time_left)
     elif game_state == POSTER_DONGVAT:
+        rainbow.stop()
+        thunder.play()
+        water.stop()
         if current_poster:
             poster_button_minus(current_poster, screen)
             show_timer(WIDTH - 150, 10, time_left)
     # GAME_END State
     elif game_state == GAME_END:
+        rainbow.stop()
+        thunder.stop()
+        water.stop()
         screen.blit(end_game, (0, 0))
         show_score(WIDTH // 2 - 50, HEIGHT // 2 - 50)
         if sl_rac == 5:
